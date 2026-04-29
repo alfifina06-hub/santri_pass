@@ -1,17 +1,19 @@
-# santri_pass
+# santri_pass : Gerbang keamanan Digital 
 
-A new Flutter project.
+Aplikasi manajemen keamanan pesantren untuk memantau keluar-masuk santri dan tamu secara digital.
 
-## Getting Started
+## Getting Started Rencana kerja (Blueprint)
 
-This project is a starting point for a Flutter application.
+1. **Pekan 1:** Setup project, Git, dan desain UI Elegan (Dashboard & Splash).
+2. **Pekan 2:** Pembuatan Class Model (OOP) Databese lokal (SQFlite).
+3. **Pekan 3:** Implementasi fitur izin Digital & Perhitungan keterlambatan.
+4.**Pekan 4:** Fitur Log Tamu & finalisasi Dokumentasi.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+
+## Fitur Utama 
+* **Digital permit:** catatan izin santri real-time.
+* **Guest Book:** Log kunjungan wali santri.
+* **Late Alert:** Notifikasi otomatis jika santri terlambat kembali
