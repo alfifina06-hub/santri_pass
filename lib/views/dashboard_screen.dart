@@ -1,88 +1,69 @@
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Diubah ke white agar background konten terlihat bersih
       body: Stack(
         children: [
-          // 1. Background Gambar Pondok (Wallpaper Utama)
+          // 1. BACKGROUND IMAGE (Full Screen)
           Container(
-            decoration: const BoxDecoration(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1590076215667-875d4ef2d968?q=80&w=1000'), 
+                image: AssetImage('assets/images/bg_pesantren.jpg'),
                 fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3), BlendMode.darken),
               ),
             ),
           ),
-          // Layer gelap transparan agar tulisan elegan dan terbaca
-          Container(color: Colors.black.withOpacity(0.6)),
-
-          // 2. Konten Utama
+          
+          // 2. KONTEN UTAMA (Scrollable)
           SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Nama Pondok & Identitas
-                Padding(
-                  padding: const EdgeInsets.all(25.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "SANTRI-PASS",
-                        style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2),
-                      ),
-                      Text(
-                        "Pondok Pesantren Al-Hidayah", // Ganti dengan nama pondokmu
-                        style: TextStyle(color: Colors.green[300], fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 3. Menu Fitur (Sesuai Blueprint & README)
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(), // Memanggil Header Hijau
+                  _buildHighlightCard(), // Memanggil Kartu Info (Penting: harus dipanggil di sini)
+                  
+                  // 3. MENU TITLE
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                    child: Row(
                       children: [
-                        const Text(
-                          "Menu Layanan",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 20),
-                        // Grid Menu Sesuai Fitur di Blueprint
-                        Expanded(
-                          child: GridView.count(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 15,
-                            mainAxisSpacing: 15,
-                            children: [
-                              _buildMenuCard(context, "Izin Digital", Icons.assignment_ind, Colors.greenAccent),
-                              _buildMenuCard(context, "Kunjungan Tamu", Icons.group, Colors.blue),
-                              _buildMenuCard(context, "Logistik/Titipan", Icons.inventory_2, Colors.orange),
-                              _buildMenuCard(context, "Riwayat Kesehatan", Icons.medical_services, Colors.red),
-                            ],
-                          ),
-                        ),
+                        Text("Layanan Utama",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87)),
                       ],
                     ),
                   ),
-                ),
-              ],
+
+                  // 4. GRID MENU FITUR
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 15,
+                      childAspectRatio: 1.1,
+                      children: [
+                        _buildMenuItem(context, "Digital Permit", Icons.assignment_ind, Colors.blue, '/permit'),
+                        _buildMenuItem(context, "Log Tamu", Icons.people_alt, Colors.orange, '/visit'),
+                        _buildMenuItem(context, "Kesehatan", Icons.monitor_heart, Colors.redAccent, '/health'),
+                        _buildMenuItem(context, "Titipan", Icons.inventory_2, Colors.purple, '/logistic'),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 25),
+                ],
+              ),
             ),
           ),
         ],
@@ -90,32 +71,111 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // Widget untuk membuat kotak fitur yang elegan
-  Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color) {
-    return InkWell(
-      onTap: () {
-        // Navigasi fitur bisa ditambahkan nanti sesuai materi Pertemuan 5
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Membuka fitur $title...")));
-      },
+  // --- SEMUA FUNGSI DI BAWAH INI TETAP SAMA SEPERTI KODE KAMU ---
+
+  Widget _buildHeader() {
+    return Container(
+      height: 220,
+      padding: EdgeInsets.only(top: 60, left: 25, right: 25),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1B5E20), Color(0xFF4CAF50)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Assalamu'alaikum wr wb,", style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  Text("Ahlan wasahlan", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.white24,
+                child: Icon(Icons.person, color: Colors.white),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightCard() {
+    return Transform.translate(
+      offset: Offset(0, -30), // Mengatur posisi agar mengambang di antara header dan body
       child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 25),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5)),
+            BoxShadow(color: Colors.black12, blurRadius: 15, spreadRadius: 2),
           ],
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
+        ),
+        child: IntrinsicHeight( // Agar Divider bisa muncul
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _infoItem("12", "Izin Aktif"),
+              VerticalDivider(color: Colors.grey),
+              _infoItem("450", "Santri"),
+              VerticalDivider(color: Colors.grey),
+              _infoItem("5", "Tamu Hari Ini"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoItem(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[800])),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(BuildContext context, String title, IconData icon, Color color, String route) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, route),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: Offset(0, 5)),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.greenAccent),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 30),
             ),
+            SizedBox(height: 12),
+            Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           ],
         ),
       ),
