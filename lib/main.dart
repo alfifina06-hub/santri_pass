@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // Pastikan path import ini sesuai dengan nama folder dan file dashboard kamu
 import 'package:santri_pass/views/dashboard_screen.dart'; 
+import 'package:santri_pass/views/splash_screen.dart';
 
 void main() {
   runApp(const SantriPassApp());
@@ -23,9 +24,10 @@ class SantriPassApp extends StatelessWidget {
       ),
 
       // MATERI PERTEMUAN 5: Manajemen Navigasi (Named Routes)
-      initialRoute: '/',
+      initialRoute: '/splash',
       routes: {
-        '/': (context) => DashboardScreen(),
+        '/splash': (context) => const SplashScreen(),
+        '/dashboard': (context) => DashboardScreen(),
         '/permit': (context) => const FeaturePlaceholder(title: "Digital Permit"),
         '/visit': (context) => const FeaturePlaceholder(title: "Log Tamu"),
         '/health': (context) => const FeaturePlaceholder(title: "Catatan Kesehatan"),
