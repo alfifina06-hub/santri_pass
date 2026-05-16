@@ -11,9 +11,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate initialization and navigation to Dashboard
-    Future.delayed(const Duration(seconds: 10), () {
-      Navigator.pushReplacementNamed(context, '/dashboard');
+    // Simulate initialization and navigation to Login
+    Future.delayed(const Duration(seconds: 4), () { // Reduced from 10 to 4 seconds for better UX
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 

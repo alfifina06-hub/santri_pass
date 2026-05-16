@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // Pastikan path import ini sesuai dengan nama folder dan file dashboard kamu
 import 'package:santri_pass/views/dashboard_screen.dart'; 
 import 'package:santri_pass/views/splash_screen.dart';
+import 'package:santri_pass/views/login_screen.dart';
 
 void main() {
   runApp(const SantriPassApp());
@@ -27,6 +28,7 @@ class SantriPassApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
         '/dashboard': (context) => DashboardScreen(),
         '/permit': (context) => const FeaturePlaceholder(title: "Digital Permit"),
         '/visit': (context) => const FeaturePlaceholder(title: "Log Tamu"),
