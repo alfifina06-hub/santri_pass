@@ -16,21 +16,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  // Feature menu items
+  final List<Map<String, dynamic>> _features = [
+    {
+      'title': 'Status Kehadiran',
+      'icon': Icons.co_present,
+      'color': Colors.green.shade700,
+      'route': '/attendance',
+    },
+
+    {
+      'title': 'Log Tamu',
+      'icon': Icons.people_alt,
+      'color': Colors.blue.shade700,
+      'route': '/visit',
+    },
+    {
+      'title': 'Catatan Kesehatan',
+      'icon': Icons.medical_services,
+      'color': Colors.red.shade700,
+      'route': '/health',
+    },
+    {
+      'title': 'Titipan Barang',
+      'icon': Icons.inventory_2,
+      'color': Colors.brown.shade700,
+      'route': '/logistic',
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Off-white background
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8F9FA),
         elevation: 0,
         title: Row(
           children: [
-            Icon(Icons.shield, color: Colors.green[800]),
+            const Icon(Icons.security, color: Color(0xFF004D28)), 
             const SizedBox(width: 8),
-            Text(
+            const Text(
               "Santri-Pass",
               style: TextStyle(
-                color: Colors.green[900],
+                color: Color(0xFF004D28),
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -43,7 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: CircleAvatar(
               radius: 18,
               backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, color: Colors.black54),
+              child: const Icon(Icons.person, color: Colors.black54), 
             ),
           )
         ],
@@ -53,102 +82,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting
             const Text(
-              "Selamat Datang, Admin",
+              "Dashboard Menu",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Color(0xFF004D28),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              "Pantau keamanan dan logistik hari ini.",
+              "Pilih layanan fitur untuk memanajemen pondok",
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.grey[700],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            // Summary Card
-            _buildSummaryCard(),
-            const SizedBox(height: 20),
-
-            // Action Cards Grid (Using Blueprint Terminology)
-            GridView.count(
+            // Grid of Features
+            GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.15,
-              children: [
-                _buildActionCard(
-                    context, 
-                    "Digital Permit", 
-                    "Pantau absensi real-time", 
-                    Icons.grid_view, 
-                    '/permit'),
-                _buildActionCard(
-                    context, 
-                    "Log Kunjungan Tamu", 
-                    "Daftar kunjungan wali", 
-                    Icons.people_alt, 
-                    '/visit'),
-                _buildActionCard(
-                    context, 
-                    "Titipan", 
-                    "Manajemen paket masuk", 
-                    Icons.inventory_2, 
-                    '/logistic'),
-                _buildActionCard(
-                    context, 
-                    "Health Record", 
-                    "Catatan medis santri", 
-                    Icons.medical_services, 
-                    '/health'),
-              ],
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: _features.length,
+              itemBuilder: (context, index) {
+                final feature = _features[index];
+                return _buildFeatureCard(
+                  title: feature['title'],
+                  icon: feature['icon'],
+                  color: feature['color'],
+                  onTap: () {
+                    Navigator.pushNamed(context, feature['route']);
+                  },
+                );
+              },
             ),
-            const SizedBox(height: 20),
-
-            // Scan Pass Card
-            _buildScanCard(),
-            const SizedBox(height: 20),
-
-            // Recent Activities
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Aktivitas Terakhir",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  "Lihat Semua",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.green[800],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildRecentActivities(),
-            const SizedBox(height: 80), // For FAB clearance
+            const SizedBox(height: 80), 
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.green[900],
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -169,221 +146,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2E7D32), // Dark green
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Total Santri di Pondok",
-                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
-              ),
-              const Icon(Icons.trending_up, color: Colors.white70),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "1,248",
-            style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              _buildStatChip("IZIN KELUAR", "24"),
-              const SizedBox(width: 12),
-              _buildStatChip("SAKIT", "12"),
-              const SizedBox(width: 12),
-              _buildStatChip("TAMU", "08"),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatChip(String label, String count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
-          Text(count, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard(BuildContext context, String title, String subtitle, IconData icon, String route) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, route),
+  Widget _buildFeatureCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.greenAccent.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: Colors.green[800], size: 24),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.black87,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildScanCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF2E7D32),
-              shape: BoxShape.circle,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 36, color: color),
             ),
-            child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Scan Pass Santri",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Validasi kartu akses digital",
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.black87,
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey[600]),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentActivities() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          _buildActivityItem(
-            icon: Icons.person_outline,
-            title: "Ahmad Fauzi",
-            subtitle: "Izin Keluar • 10:45 WIB", 
-            status: "Selesai",
-            statusColor: Colors.grey[200]!,
-            textColor: Colors.black87,
-          ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          _buildActivityItem(
-            icon: Icons.local_shipping_outlined,
-            title: "Paket J&T #9921",
-            subtitle: "Logistik • 09:30 WIB",
-            status: "Pending",
-            statusColor: Colors.greenAccent.withOpacity(0.4),
-            textColor: Colors.green[800]!,
-          ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          _buildActivityItem(
-            icon: Icons.medical_services_outlined,
-            title: "Zaidan Karim",
-            subtitle: "Kesehatan • 08:15 WIB",
-            status: "Penting",
-            statusColor: Colors.redAccent.withOpacity(0.2),
-            textColor: Colors.red[800]!,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String status,
-    required Color statusColor,
-    required Color textColor,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: Colors.black87),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-      subtitle: Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: statusColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          status,
-          style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w600),
+          ],
         ),
       ),
     );
@@ -399,19 +204,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.greenAccent.withOpacity(0.4) : Colors.transparent,
+              color: isSelected ? Colors.greenAccent.shade200 : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
               icon,
-              color: isSelected ? Colors.green[800] : Colors.grey[600],
+              color: isSelected ? const Color(0xFF004D28) : Colors.grey[600],
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.green[800] : Colors.grey[600],
+              color: isSelected ? const Color(0xFF004D28) : Colors.grey[600],
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),

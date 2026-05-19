@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-// Pastikan path import ini sesuai dengan nama folder dan file dashboard kamu
 import 'package:santri_pass/views/dashboard_screen.dart'; 
 import 'package:santri_pass/views/splash_screen.dart';
 import 'package:santri_pass/views/login_screen.dart';
-
+import 'package:santri_pass/views/attendance_screen.dart';
 void main() {
   runApp(const SantriPassApp());
 }
@@ -15,22 +14,18 @@ class SantriPassApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Santri-Pass',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
-      
-      // Tema Aplikasi agar terlihat Elegan
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.green,
-        useMaterial3: true, // Menggunakan gaya UI Android terbaru
-        fontFamily: 'sans-serif', // Gunakan font bawaan yang bersih
+        useMaterial3: true,
+        fontFamily: 'sans-serif', 
       ),
-
-      // MATERI PERTEMUAN 5: Manajemen Navigasi (Named Routes)
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/dashboard': (context) => DashboardScreen(),
-        '/permit': (context) => const FeaturePlaceholder(title: "Digital Permit"),
+        '/attendance': (context) => const AttendanceScreen(),
         '/visit': (context) => const FeaturePlaceholder(title: "Log Tamu"),
         '/health': (context) => const FeaturePlaceholder(title: "Catatan Kesehatan"),
         '/logistic': (context) => const FeaturePlaceholder(title: "Titipan Barang"),
@@ -39,8 +34,6 @@ class SantriPassApp extends StatelessWidget {
   }
 }
 
-// Widget sederhana untuk halaman fitur yang belum dibuat
-// Agar saat diklik tidak error, tapi muncul halaman transisi
 class FeaturePlaceholder extends StatelessWidget {
   final String title;
   const FeaturePlaceholder({super.key, required this.title});

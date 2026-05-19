@@ -33,8 +33,16 @@ class _LoginScreenState extends State<LoginScreen> {
           
           // 3. Main Content
           SafeArea(
-            child: Column(
-              children: [
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
                 // Top Section (Logo and Titles)
                 Expanded(
                   child: Center(
@@ -287,6 +295,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 )
               ],
             ),
+          ),
+        ),
+      );
+  },
+),
           ),
         ],
       ),
