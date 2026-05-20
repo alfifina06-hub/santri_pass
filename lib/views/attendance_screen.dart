@@ -10,6 +10,7 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isListExpanded = false;
 
   @override
   void initState() {
@@ -22,7 +23,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.dispose();
   }
 
+  // Data dummy yang lebih banyak
   final List<Map<String, dynamic>> _santriList = [
+    {
+      'name': 'Ahmad Zaini',
+      'class': 'Kelas 12-A',
+      'building': 'Gedung Al-Ikhlas',
+      'status': 'DI DALAM',
+      'timeLabel': 'Masuk: 04:30 WIB',
+      'statusColor': const Color(0xFF1B5E20), 
+      'statusBgColor': Colors.greenAccent.shade200, 
+      'iconColor': Colors.white,
+      'avatarColor': const Color(0xFF1B5E20), 
+    },
     {
       'name': 'Ahmad Zaki Al-Fatih',
       'class': 'Kelas 12-A',
@@ -33,6 +46,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       'statusBgColor': Colors.greenAccent.shade200, 
       'iconColor': Colors.white,
       'avatarColor': const Color(0xFF1B5E20), 
+    },
+    {
+      'name': 'Ahmad Fauzi',
+      'class': 'Kelas 11-B',
+      'building': 'Gedung Ar-Rayyan',
+      'status': 'IZIN KELUAR',
+      'timeLabel': 'Keluar: 10:45 WIB',
+      'statusColor': const Color(0xFF1B5E20), 
+      'statusBgColor': Colors.greenAccent.shade200, 
+      'iconColor': Colors.grey.shade400,
+      'avatarColor': Colors.grey.shade200,
+    },
+    {
+      'name': 'Zaini Majid',
+      'class': 'Kelas 10-A',
+      'building': 'Gedung An-Nur',
+      'status': 'DI DALAM',
+      'timeLabel': 'Masuk: 18:30 WIB',
+      'statusColor': const Color(0xFF1B5E20),
+      'statusBgColor': Colors.greenAccent.shade200,
+      'iconColor': Colors.white,
+      'avatarColor': const Color(0xFF1B5E20),
     },
     {
       'name': 'Muhammad Rizky',
@@ -68,25 +103,60 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       'iconColor': Colors.white,
       'avatarColor': const Color(0xFF1B5E20),
     },
+    {
+      'name': 'Ahmad Rabbani',
+      'class': 'Kelas 12-C',
+      'building': 'Gedung Al-Ikhlas',
+      'status': 'DI DALAM',
+      'timeLabel': 'Masuk: 15:20 WIB',
+      'statusColor': const Color(0xFF1B5E20),
+      'statusBgColor': Colors.greenAccent.shade200,
+      'iconColor': Colors.white,
+      'avatarColor': const Color(0xFF1B5E20),
+    },
+    {
+      'name': 'Ilham Zaini Akbar',
+      'class': 'Kelas 10-B',
+      'building': 'Gedung An-Nur',
+      'status': 'IZIN KELUAR',
+      'timeLabel': 'Keluar: 14:15 WIB',
+      'statusColor': const Color(0xFF1B5E20),
+      'statusBgColor': Colors.greenAccent.shade200,
+      'iconColor': Colors.grey.shade400,
+      'avatarColor': Colors.grey.shade200,
+    },
+    {
+      'name': 'Ridho Pratama',
+      'class': 'Kelas 11-A',
+      'building': 'Gedung Ar-Rayyan',
+      'status': 'TERLAMBAT',
+      'timeLabel': 'Deadline: 20:00 WIB',
+      'statusColor': Colors.red.shade700,
+      'statusBgColor': Colors.red.shade100,
+      'iconColor': Colors.red.shade700,
+      'avatarColor': Colors.red.shade100,
+      'timeLabelColor': Colors.red.shade700,
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? foundSantri;
-    if (_searchQuery.trim().isNotEmpty) {
-      for (var santri in _santriList) {
-        if (santri['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase())) {
-          foundSantri = santri;
-          break;
-        }
-      }
-    }
+    // 1. Filter list realtime
+    List<Map<String, dynamic>> filteredSantriList = _santriList.where((santri) {
+      return santri['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         backgroundColor: const Color(0xFF004D28),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          onPressed: () {
+            Navigator.pop(context); // Kembali ke layar sebelumnya (Dashboard)
+          },
+        ),
         title: const Text(
           "Status Kehadiran Santri",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -145,92 +215,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: TextField(
                 controller: _searchController,
                 textInputAction: TextInputAction.search,
-                onSubmitted: (value) {
+                onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
+                    if (value.isNotEmpty) {
+                      _isListExpanded = true;
+                    }
                   });
                 },
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.search, color: Colors.grey),
-                  hintText: "Cari nama santri atau kelas...",
-                  hintStyle: TextStyle(color: Colors.grey),
+                decoration: InputDecoration(
+                  icon: const Icon(Icons.search, color: Colors.grey),
+                  hintText: "Cari nama santri (contoh: ahmad zaini)...",
+                  hintStyle: const TextStyle(color: Colors.grey),
                   border: InputBorder.none,
+                  suffixIcon: _searchQuery.isNotEmpty 
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        ) 
+                      : null,
                 ),
               ),
             ),
-            if (foundSantri != null)
-              Builder(
-                builder: (context) {
-                  final String name = foundSantri!['name'];
-                  final String status = foundSantri!['status'];
-                  
-                  Color bgColor;
-                  Color borderColor;
-                  Color iconColor;
-                  Color textColor;
-                  IconData iconData;
-                  String message;
-
-                  if (status == 'DI DALAM') {
-                    bgColor = Colors.blue.shade50;
-                    borderColor = Colors.blue.shade300;
-                    iconColor = Colors.blue.shade800;
-                    textColor = Colors.blue.shade900;
-                    iconData = Icons.info_outline;
-                    message = "Pemberitahuan: Santri bernama $name saat ini terdata DI DALAM pondok.";
-                  } else if (status == 'IZIN KELUAR') {
-                    bgColor = Colors.orange.shade50;
-                    borderColor = Colors.orange.shade300;
-                    iconColor = Colors.orange.shade800;
-                    textColor = Colors.orange.shade900;
-                    iconData = Icons.directions_bus_outlined;
-                    message = "Pemberitahuan: Santri bernama $name saat ini sedang IZIN KELUAR pondok.";
-                  } else if (status == 'TERLAMBAT') {
-                    bgColor = Colors.red.shade50;
-                    borderColor = Colors.red.shade300;
-                    iconColor = Colors.red.shade800;
-                    textColor = Colors.red.shade900;
-                    iconData = Icons.alarm;
-                    message = "Pemberitahuan: Santri bernama $name saat ini berstatus TERLAMBAT kembali.";
-                  } else {
-                    bgColor = Colors.grey.shade100;
-                    borderColor = Colors.grey.shade300;
-                    iconColor = Colors.grey.shade600;
-                    textColor = Colors.grey.shade800;
-                    iconData = Icons.info;
-                    message = "Status santri bernama $name adalah $status.";
-                  }
-
-                  return Container(
-                    margin: const EdgeInsets.only(top: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderColor),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(iconData, color: iconColor),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            message,
-                            style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             const SizedBox(height: 24),
 
             // Daftar Aktif Container
@@ -242,121 +267,175 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ),
               child: Column(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Daftar Aktif",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF004D28),
+                  // Header (Clickable for Expand/Collapse)
+                  InkWell(
+                    borderRadius: _isListExpanded
+                        ? const BorderRadius.vertical(top: Radius.circular(16))
+                        : BorderRadius.circular(16),
+                    onTap: () {
+                      setState(() {
+                        _isListExpanded = !_isListExpanded;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Daftar Santri",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF004D28),
+                            ),
                           ),
-                        ),
-                        Icon(Icons.filter_list, color: Colors.grey.shade600),
-                      ],
+                          Icon(
+                            _isListExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            color: Colors.grey.shade600,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const Divider(height: 1),
-                  // List
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _santriList.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final santri = _santriList[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: santri['avatarColor'],
-                              child: Icon(Icons.person_outline, color: santri['iconColor']),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
+                  
+                  if (_isListExpanded) ...[
+                    const Divider(height: 1),
+                    // List
+                    if (filteredSantriList.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.search_off, size: 48, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                "Santri tidak ditemukan",
+                                style: TextStyle(color: Colors.grey, fontSize: 16),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: filteredSantriList.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final santri = filteredSantriList[index];
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                // Auto-fill the search box with the selected name
+                                _searchController.text = santri['name'];
+                                _searchQuery = santri['name'];
+                                // Move cursor to the end
+                                _searchController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: _searchController.text.length)
+                                );
+                              });
+                              // Hide keyboard after selection
+                              FocusScope.of(context).unfocus();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    santri['name'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: santri['avatarColor'],
+                                    child: Icon(Icons.person_outline, color: santri['iconColor']),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          santri['name'],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "${santri['class']} • ${santri['building']}",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "${santri['class']} • ${santri['building']}",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: santri['statusBgColor'],
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Icon(Icons.circle, size: 8, color: santri['statusColor']),
-                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: santri['statusBgColor'],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.circle, size: 8, color: santri['statusColor']),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              santri['status'],
+                                              style: TextStyle(
+                                                color: santri['statusColor'],
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
                                       Text(
-                                        santri['status'],
+                                        santri['timeLabel'],
                                         style: TextStyle(
-                                          color: santri['statusColor'],
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                          color: santri['timeLabelColor'] ?? Colors.grey.shade600,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  santri['timeLabel'],
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: santri['timeLabelColor'] ?? Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  // Footer
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Text(
-                        "LIHAT SEMUA SANTRI",
-                        style: TextStyle(
-                          color: Color(0xFF004D28),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          );
+                        },
+                      ),
+                    if (filteredSantriList.isNotEmpty)
+                      const Divider(height: 1),
+                    if (filteredSantriList.isNotEmpty)
+                      InkWell(
+                        onTap: () {
+                          // Placeholder for navigating to a full list page if needed
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Text(
+                              "LIHAT SEMUA SANTRI",
+                              style: TextStyle(
+                                color: Color(0xFF004D28),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                  ]
                 ],
               ),
             ),
