@@ -5,6 +5,7 @@ import 'package:santri_pass/views/login_screen.dart';
 import 'package:santri_pass/views/attendance_screen.dart';
 import 'package:santri_pass/views/visit_screen.dart';
 import 'package:santri_pass/views/logistic_screen.dart';
+import 'package:santri_pass/views/health_screen.dart';
 void main() {
   runApp(const SantriPassApp());
 }
@@ -29,7 +30,7 @@ class SantriPassApp extends StatelessWidget {
         '/dashboard': (context) => DashboardScreen(),
         '/attendance': (context) => const AttendanceScreen(),
         '/visit': (context) => const VisitScreen(),
-        '/health': (context) => const FeaturePlaceholder(title: "Catatan Kesehatan"),
+        '/health': (context) => const HealthScreen(),
         '/logistic': (context) => const LogisticScreen(),
       },
     );
