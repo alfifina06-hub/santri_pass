@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class VisitScreen extends StatefulWidget {
@@ -9,9 +10,12 @@ class VisitScreen extends StatefulWidget {
 
 class _VisitScreenState extends State<VisitScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _visitorNameController = TextEditingController();
+  final TextEditingController _studentNameController = TextEditingController();
+  final TextEditingController _studentClassController = TextEditingController();
   String _searchQuery = '';
 
-  final List<Map<String, dynamic>> _visitList = [
+  static final List<Map<String, dynamic>> _visitList = [
     {
       'visitorName': 'H. Ahmad Fauzi',
       'studentName': 'Abdullah Fauzi',
@@ -62,7 +66,21 @@ class _VisitScreenState extends State<VisitScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _visitorNameController.dispose();
+    _studentNameController.dispose();
+    _studentClassController.dispose();
     super.dispose();
+  }
+
+  String _getFormattedTime() {
+    final now = DateTime.now();
+    int hour = now.hour;
+    final String ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    final minuteStr = now.minute.toString().padLeft(2, '0');
+    final hourStr = hour.toString().padLeft(2, '0');
+    return "$hourStr:$minuteStr $ampm";
   }
 
   void _showAddVisitDialog() {
@@ -97,16 +115,62 @@ class _VisitScreenState extends State<VisitScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              _buildInputField('Nama Wali Santri', Icons.person_outline, 'Contoh: H. Ahmad Fauzi'),
+              _buildInputField('Nama Wali Santri', Icons.person_outline, 'Contoh: H. Ahmad Fauzi', _visitorNameController),
               const SizedBox(height: 12),
-              _buildInputField('Nama Santri yang Dikunjungi', Icons.school_outlined, 'Contoh: Abdullah Fauzi'),
+              _buildInputField('Nama Santri yang Dikunjungi', Icons.school_outlined, 'Contoh: Abdullah Fauzi', _studentNameController),
               const SizedBox(height: 12),
-              _buildInputField('Kelas Santri', Icons.class_outlined, 'Contoh: Grade 10-A'),
+              _buildInputField('Kelas Santri', Icons.class_outlined, 'Contoh: Grade 10-A', _studentClassController),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    final visitorName = _visitorNameController.text.trim();
+                    final studentName = _studentNameController.text.trim();
+                    final studentClass = _studentClassController.text.trim();
+
+                    if (visitorName.isEmpty || studentName.isEmpty || studentClass.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Semua field harus diisi!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final random = Random();
+                    final randomId = '#VP-${random.nextInt(9000) + 1000}';
+                    final checkInStr = _getFormattedTime();
+
+                    setState(() {
+                      _searchQuery = '';
+                      _searchController.clear();
+                      _visitList.insert(0, {
+                        'visitorName': visitorName,
+                        'studentName': studentName,
+                        'studentClass': studentClass,
+                        'checkInTime': checkInStr,
+                        'visitorId': randomId,
+                        'status': 'AKTIF',
+                        'isActive': true,
+                      });
+                    });
+
+                    // Clear fields
+                    _visitorNameController.clear();
+                    _studentNameController.clear();
+                    _studentClassController.clear();
+
+                    Navigator.pop(context);
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Kunjungan berhasil disimpan!'),
+                        backgroundColor: Color(0xFF004D28),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.check_circle_outline, color: Colors.white),
                   label: const Text('Simpan Kunjungan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   style: ElevatedButton.styleFrom(
@@ -124,13 +188,14 @@ class _VisitScreenState extends State<VisitScreen> {
     );
   }
 
-  Widget _buildInputField(String label, IconData icon, String hint) {
+  Widget _buildInputField(String label, IconData icon, String hint, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         const SizedBox(height: 6),
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.grey, size: 20),
             hintText: hint,
@@ -411,7 +476,20 @@ class _VisitScreenState extends State<VisitScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: implement checkout
+                    setState(() {
+                      final index = _visitList.indexWhere((element) => element['visitorId'] == visit['visitorId']);
+                      if (index != -1) {
+                        _visitList[index]['isActive'] = false;
+                        _visitList[index]['status'] = 'SELESAI';
+                        _visitList[index]['duration'] = '15 Minutes';
+                      }
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Pengunjung berhasil check-out!'),
+                        backgroundColor: Color(0xFF004D28),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey.shade400),
