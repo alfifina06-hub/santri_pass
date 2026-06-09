@@ -13,6 +13,12 @@ class _LogisticScreenState extends State<LogisticScreen>
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  // Controllers for adding a new deposit
+  final TextEditingController _studentNameController = TextEditingController();
+  final TextEditingController _fromOrCourierController = TextEditingController();
+  final TextEditingController _amountOrDescController = TextEditingController();
+  String _selectedType = 'Uang Saku';
+
   // README: Menggunakan List<Map> sebagai sumber data
   final List<Map<String, dynamic>> _titipanList = [
     {
@@ -22,7 +28,7 @@ class _LogisticScreenState extends State<LogisticScreen>
       'amount': 'Rp 500.000',
       'from': 'Ibu Fatimah (Wali)',
       'time': '10:45 AM',
-      'status': 'masuk',   // 'masuk' or 'belum_diambil'
+      'status': 'masuk',   // 'masuk', 'belum_diambil', or 'sudah_diambil'
       'statusLabel': null,
     },
     {
@@ -70,14 +76,111 @@ class _LogisticScreenState extends State<LogisticScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _studentNameController.dispose();
+    _fromOrCourierController.dispose();
+    _amountOrDescController.dispose();
     super.dispose();
+  }
+
+  String _getFormattedTime() {
+    final now = DateTime.now();
+    int hour = now.hour;
+    final String ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    final minuteStr = now.minute.toString().padLeft(2, '0');
+    final hourStr = hour.toString().padLeft(2, '0');
+    return "$hourStr:$minuteStr $ampm";
+  }
+
+  void _showDetailDialog(Map<String, dynamic> item) {
+    final bool isUang = item['type'] == 'Uang Saku';
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(item['typeIcon'] as IconData, color: const Color(0xFF004D28)),
+              const SizedBox(width: 8),
+              Text(
+                'Detail ${item['type']}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDetailRow('Nama Santri', item['name']),
+              const SizedBox(height: 12),
+              if (isUang) ...[
+                _buildDetailRow('Jumlah', item['amount'] ?? '-'),
+                const SizedBox(height: 12),
+                _buildDetailRow('Dari (Wali)', item['from'] ?? '-'),
+              ] else ...[
+                _buildDetailRow('Keterangan', item['description'] ?? '-'),
+                const SizedBox(height: 12),
+                _buildDetailRow('Kurir', item['courier'] ?? '-'),
+              ],
+              const SizedBox(height: 12),
+              _buildDetailRow('Waktu Catat', item['time']),
+              const SizedBox(height: 12),
+              _buildDetailRow(
+                'Status', 
+                item['status'] == 'masuk' 
+                    ? 'DAFTAR TITIPAN (MASUK)' 
+                    : (item['status'] == 'belum_diambil' ? 'BELUM DIAMBIL' : 'SUDAH DIAMBIL')
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup', style: TextStyle(color: Color(0xFF004D28), fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 2),
+        Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
+      ],
+    );
+  }
+
+  String _formatAmountString(String amount) {
+    final digits = amount.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return amount;
+    final numVal = int.tryParse(digits);
+    if (numVal == null) return amount;
+    final str = numVal.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(str[i]);
+    }
+    return buffer.toString();
   }
 
   void _showAddTitipanDialog() {
@@ -88,72 +191,160 @@ class _LogisticScreenState extends State<LogisticScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            final isUang = _selectedType == 'Uang Saku';
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 24,
+                right: 24,
+                top: 24,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Catat Titipan Baru',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              _buildInputField('Nama Santri', Icons.person_outline, 'Contoh: Ahmad Zulkarnain'),
-              const SizedBox(height: 12),
-              _buildInputField('Jenis Titipan', Icons.category_outlined, 'Uang Saku / Paket Barang'),
-              const SizedBox(height: 12),
-              _buildInputField('Dari (Nama Wali)', Icons.people_outline, 'Contoh: Ibu Fatimah'),
-              const SizedBox(height: 12),
-              _buildInputField('Jumlah / Keterangan', Icons.notes_outlined, 'Contoh: Rp 500.000 atau deskripsi barang'),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-                  label: const Text(
-                    'Simpan Titipan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF004D28),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Catat Titipan Baru',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInputField('Nama Santri', Icons.person_outline, 'Contoh: Ahmad Zulkarnain', _studentNameController),
+                  const SizedBox(height: 12),
+                  _buildDropdownField(
+                    'Jenis Titipan',
+                    Icons.category_outlined,
+                    _selectedType,
+                    ['Uang Saku', 'Paket Barang'],
+                    (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          _selectedType = val;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInputField(
+                    isUang ? 'Dari (Nama Wali)' : 'Kurir / Pengirim',
+                    isUang ? Icons.people_outline : Icons.local_shipping_outlined,
+                    isUang ? 'Contoh: Ibu Fatimah' : 'Contoh: J&T Express / Bpk. Andi',
+                    _fromOrCourierController,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInputField(
+                    isUang ? 'Jumlah Uang' : 'Keterangan Barang',
+                    isUang ? Icons.wallet_outlined : Icons.notes_outlined,
+                    isUang ? 'Contoh: 500000' : 'Contoh: Box plastik berisi pakaian',
+                    _amountOrDescController,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final studentName = _studentNameController.text.trim();
+                        final fromOrCourier = _fromOrCourierController.text.trim();
+                        final amountOrDesc = _amountOrDescController.text.trim();
+
+                        if (studentName.isEmpty || fromOrCourier.isEmpty || amountOrDesc.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Semua field harus diisi!'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                          if (_selectedType == 'Uang Saku') {
+                            final String formattedAmount = amountOrDesc.startsWith('Rp') 
+                                ? amountOrDesc 
+                                : 'Rp ${_formatAmountString(amountOrDesc)}';
+                            
+                            _titipanList.insert(0, {
+                              'type': 'Uang Saku',
+                              'typeIcon': Icons.wallet_outlined,
+                              'name': studentName,
+                              'amount': formattedAmount,
+                              'from': '$fromOrCourier (Wali)',
+                              'time': _getFormattedTime(),
+                              'status': 'masuk',
+                              'statusLabel': null,
+                            });
+                          } else {
+                            _titipanList.insert(0, {
+                              'type': 'Paket Barang',
+                              'typeIcon': Icons.inventory_2_outlined,
+                              'name': studentName,
+                              'description': '"$amountOrDesc"',
+                              'courier': fromOrCourier,
+                              'time': _getFormattedTime(),
+                              'status': 'masuk',
+                              'statusLabel': null,
+                            });
+                          }
+                        });
+
+                        // Clear inputs
+                        _studentNameController.clear();
+                        _fromOrCourierController.clear();
+                        _amountOrDescController.clear();
+                        _selectedType = 'Uang Saku';
+
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Titipan baru berhasil dicatat!'),
+                            backgroundColor: Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                      label: const Text(
+                        'Simpan Titipan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF004D28),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildInputField(String label, IconData icon, String hint) {
+  Widget _buildInputField(String label, IconData icon, String hint, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,6 +352,7 @@ class _LogisticScreenState extends State<LogisticScreen>
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         const SizedBox(height: 6),
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.grey, size: 20),
             hintText: hint,
@@ -180,11 +372,47 @@ class _LogisticScreenState extends State<LogisticScreen>
     );
   }
 
+  Widget _buildDropdownField(String label, IconData icon, String value, List<String> items, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: value,
+          onChanged: onChanged,
+          items: items.map((type) {
+            return DropdownMenuItem<String>(
+              value: type,
+              child: Text(type, style: const TextStyle(fontSize: 14)),
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.grey, size: 20),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // README: Filter menggunakan List.where (real-time search)
-    final String currentTab =
-        _tabController.index == 0 ? 'masuk' : 'belum_diambil';
+    final String currentTab;
+    if (_tabController.index == 0) {
+      currentTab = 'masuk';
+    } else if (_tabController.index == 1) {
+      currentTab = 'belum_diambil';
+    } else {
+      currentTab = 'sudah_diambil';
+    }
 
     final List<Map<String, dynamic>> filtered = _titipanList.where((item) {
       final matchesTab = item['status'] == currentTab;
@@ -276,8 +504,9 @@ class _LogisticScreenState extends State<LogisticScreen>
                         const TextStyle(fontSize: 13),
                     dividerColor: Colors.transparent,
                     tabs: const [
-                      Tab(text: 'Titipan Masuk'),
+                      Tab(text: 'Daftar Titipan'),
                       Tab(text: 'Belum Diambil'),
+                      Tab(text: 'Sudah Diambil'),
                     ],
                   ),
                 ),
@@ -444,7 +673,7 @@ class _LogisticScreenState extends State<LogisticScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            item['typeIcon'],
+                            item['typeIcon'] as IconData,
                             size: 14,
                             color: const Color(0xFF004D28),
                           ),
@@ -475,13 +704,21 @@ class _LogisticScreenState extends State<LogisticScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade100,
+                          color: item['statusLabel'] == 'Menunggu'
+                              ? Colors.orange.shade100
+                              : (item['statusLabel'] == 'Terkirim'
+                                  ? Colors.blue.shade100
+                                  : Colors.green.shade100),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           item['statusLabel'],
-                          style: const TextStyle(
-                            color: Color(0xFF004D28),
+                          style: TextStyle(
+                            color: item['statusLabel'] == 'Menunggu'
+                                ? Colors.orange.shade800
+                                : (item['statusLabel'] == 'Terkirim'
+                                    ? Colors.blue.shade800
+                                    : const Color(0xFF004D28)),
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -549,18 +786,19 @@ class _LogisticScreenState extends State<LogisticScreen>
               ),
             ],
 
-            // Action buttons (only for cards without statusLabel)
-            if (!hasStatusLabel) ...[
+            // Action buttons depending on status
+            if (item['status'] == 'masuk') ...[
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _showDetailDialog(item);
+                      },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey.shade400),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -576,11 +814,23 @@ class _LogisticScreenState extends State<LogisticScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'belum_diambil';
+                          item['statusLabel'] = isUang ? 'Terkirim' : 'Menunggu';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isUang
+                                ? 'Uang saku berhasil dikonfirmasi!'
+                                : 'Paket barang siap diserahkan!'),
+                            backgroundColor: const Color(0xFF004D28),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF004D28),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -595,6 +845,86 @@ class _LogisticScreenState extends State<LogisticScreen>
                     ),
                   ),
                 ],
+              ),
+            ] else if (item['status'] == 'belum_diambil') ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        _showDetailDialog(item);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Detail',
+                        style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'sudah_diambil';
+                          item['statusLabel'] = 'Diambil';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Titipan berhasil ditandai sudah diambil oleh santri!'),
+                            backgroundColor: Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF004D28),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Ambil Titipan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (item['status'] == 'sudah_diambil') ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    _showDetailDialog(item);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey.shade400),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Detail',
+                    style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
               ),
             ],
           ],
