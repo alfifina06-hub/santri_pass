@@ -12,6 +12,13 @@ class _HealthScreenState extends State<HealthScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'Semua';
 
+  // Controllers for reporting health issue
+  final TextEditingController _studentNameController = TextEditingController();
+  final TextEditingController _roomController = TextEditingController();
+  final TextEditingController _symptomController = TextEditingController();
+  final TextEditingController _treatmentController = TextEditingController();
+  String _selectedStatus = 'OBSERVASI';
+
   // README: Menggunakan List<Map> sebagai sumber data
   final List<Map<String, dynamic>> _healthList = [
     {
@@ -23,20 +30,16 @@ class _HealthScreenState extends State<HealthScreen> {
       'perawatan': 'Kamar (Istirahat)',
       'date': '24 Okt 2023, 08:30',
       'avatarColor': Color(0xFF2E7D32),
-      'statusColor': Color(0xFFE65100),
-      'statusBgColor': Color(0xFFFFF3E0),
     },
     {
       'name': 'Muhammad Farhan',
       'initials': 'MF',
       'room': 'Kamar Khalid 02',
-      'status': 'PULIH',
+      'status': 'SEMBUH',
       'gejala': 'Flu Ringan',
       'perawatan': 'Poli Klinik',
       'date': '23 Okt 2023, 14:15',
       'avatarColor': Color(0xFF1565C0),
-      'statusColor': Color(0xFF2E7D32),
-      'statusBgColor': Color(0xFFE8F5E9),
     },
     {
       'name': 'Rizky Kurniawan',
@@ -47,32 +50,26 @@ class _HealthScreenState extends State<HealthScreen> {
       'perawatan': 'RS Rujukan',
       'date': '22 Okt 2023, 19:45',
       'avatarColor': Color(0xFFC62828),
-      'statusColor': Color(0xFFC62828),
-      'statusBgColor': Color(0xFFFFEBEE),
     },
     {
       'name': 'Umar Al-Khattab',
       'initials': 'UA',
       'room': 'Kamar Hamzah 05',
-      'status': 'PULIH',
+      'status': 'SEMBUH',
       'gejala': 'Pusing',
       'perawatan': 'Istirahat Kamar',
       'date': '21 Okt 2023, 10:00',
       'avatarColor': Color(0xFF6A1B9A),
-      'statusColor': Color(0xFF2E7D32),
-      'statusBgColor': Color(0xFFE8F5E9),
     },
     {
-      'name': 'Hafizh Maulana',
-      'initials': 'HM',
+      'name': 'Hafizh Syahputra',
+      'initials': 'HS',
       'room': 'Kamar Bilal 03',
-      'status': 'OBSERVASI',
-      'gejala': 'Sakit Perut',
-      'perawatan': 'Kamar (Istirahat)',
+      'status': 'RUMAH',
+      'gejala': 'Cedera Kaki',
+      'perawatan': 'Rawat di Rumah',
       'date': '20 Okt 2023, 07:00',
       'avatarColor': Color(0xFF00695C),
-      'statusColor': Color(0xFFE65100),
-      'statusBgColor': Color(0xFFFFF3E0),
     },
     {
       'name': 'Faisal Ramadhan',
@@ -80,15 +77,87 @@ class _HealthScreenState extends State<HealthScreen> {
       'room': 'Kamar Umar 06',
       'status': 'KLINIK',
       'gejala': 'Asma Kambuh',
-      'perawatan': 'RS Rujukan',
+      'perawatan': 'Poli Klinik',
       'date': '19 Okt 2023, 21:30',
       'avatarColor': Color(0xFF4E342E),
-      'statusColor': Color(0xFFC62828),
-      'statusBgColor': Color(0xFFFFEBEE),
     },
   ];
 
-  final List<String> _filters = ['Semua', 'Observasi', 'Pemulihan', 'Klinik'];
+  final List<String> _filters = ['Semua', 'Observasi', 'Klinik', 'Rumah', 'Sembuh'];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _studentNameController.dispose();
+    _roomController.dispose();
+    _symptomController.dispose();
+    _treatmentController.dispose();
+    super.dispose();
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return 'S';
+    final parts = name.trim().split(' ');
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  }
+
+  Color _getRandomAvatarColor(String name) {
+    final colors = [
+      const Color(0xFF2E7D32),
+      const Color(0xFF1565C0),
+      const Color(0xFFC62828),
+      const Color(0xFF6A1B9A),
+      const Color(0xFF00695C),
+      const Color(0xFF4E342E),
+      const Color(0xFFE65100),
+    ];
+    return colors[name.hashCode % colors.length];
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'SEMBUH':
+        return const Color(0xFF2E7D32);
+      case 'OBSERVASI':
+        return const Color(0xFFE65100);
+      case 'KLINIK':
+        return const Color(0xFF1565C0);
+      case 'RUMAH':
+        return const Color(0xFFC62828);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getStatusBgColor(String status) {
+    switch (status) {
+      case 'SEMBUH':
+        return const Color(0xFFE8F5E9);
+      case 'OBSERVASI':
+        return const Color(0xFFFFF3E0);
+      case 'KLINIK':
+        return const Color(0xFFE3F2FD);
+      case 'RUMAH':
+        return const Color(0xFFFFEBEE);
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  String _getFormattedDateTime() {
+    final now = DateTime.now();
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    final monthStr = months[now.month - 1];
+    final minuteStr = now.minute.toString().padLeft(2, '0');
+    final hourStr = now.hour.toString().padLeft(2, '0');
+    return "${now.day} $monthStr ${now.year}, $hourStr:$minuteStr";
+  }
 
   void _showLaporDialog() {
     showModalBottomSheet(
@@ -98,69 +167,200 @@ class _HealthScreenState extends State<HealthScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24, right: 24, top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 24,
+                right: 24,
+                top: 24,
               ),
-              const SizedBox(height: 20),
-              const Text('Lapor Riwayat Kesehatan Baru',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              _buildInputField('Nama Santri', Icons.person_outline, 'Contoh: Ahmad Zaki'),
-              const SizedBox(height: 12),
-              _buildInputField('Kamar', Icons.bed_outlined, 'Contoh: Kamar Al-Fatih 04'),
-              const SizedBox(height: 12),
-              _buildInputField('Gejala', Icons.sick_outlined, 'Contoh: Demam & Batuk'),
-              const SizedBox(height: 12),
-              _buildInputField('Perawatan', Icons.local_hospital_outlined, 'Contoh: Kamar (Istirahat)'),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-                  label: const Text('Simpan Laporan',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF004D28),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Lapor Riwayat Kesehatan Baru',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInputField('Nama Santri', Icons.person_outline, 'Contoh: Ahmad Zaki', _studentNameController),
+                  const SizedBox(height: 12),
+                  _buildInputField('Kamar', Icons.bed_outlined, 'Contoh: Kamar Al-Fatih 04', _roomController),
+                  const SizedBox(height: 12),
+                  _buildInputField('Gejala', Icons.sick_outlined, 'Contoh: Demam & Batuk', _symptomController),
+                  const SizedBox(height: 12),
+                  _buildDropdownField(
+                    'Status Awal / Lokasi',
+                    Icons.local_hospital_outlined,
+                    _selectedStatus,
+                    ['OBSERVASI', 'KLINIK', 'RUMAH'],
+                    (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          _selectedStatus = val;
+                          // Suggest default treatment based on selected status
+                          if (_treatmentController.text.trim().isEmpty) {
+                            if (_selectedStatus == 'OBSERVASI') {
+                              _treatmentController.text = 'Kamar (Istirahat)';
+                            } else if (_selectedStatus == 'KLINIK') {
+                              _treatmentController.text = 'Poli Klinik';
+                            } else if (_selectedStatus == 'RUMAH') {
+                              _treatmentController.text = 'Rawat di Rumah';
+                            }
+                          }
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInputField(
+                    'Tindakan Perawatan',
+                    Icons.healing_outlined,
+                    _selectedStatus == 'OBSERVASI'
+                        ? 'Contoh: Kamar (Istirahat)'
+                        : (_selectedStatus == 'KLINIK' ? 'Contoh: Poli Klinik' : 'Contoh: Rawat di Rumah'),
+                    _treatmentController,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final studentName = _studentNameController.text.trim();
+                        final roomName = _roomController.text.trim();
+                        final symptoms = _symptomController.text.trim();
+                        final treatment = _treatmentController.text.trim();
+
+                        if (studentName.isEmpty || roomName.isEmpty || symptoms.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Nama, Kamar, dan Gejala harus diisi!'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final defaultTreatment = treatment.isEmpty
+                            ? (_selectedStatus == 'OBSERVASI'
+                                ? 'Kamar (Istirahat)'
+                                : (_selectedStatus == 'KLINIK' ? 'Poli Klinik' : 'Rawat di Rumah'))
+                            : treatment;
+
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                          _healthList.insert(0, {
+                            'name': studentName,
+                            'initials': _getInitials(studentName),
+                            'room': roomName,
+                            'status': _selectedStatus,
+                            'gejala': symptoms,
+                            'perawatan': defaultTreatment,
+                            'date': _getFormattedDateTime(),
+                            'avatarColor': _getRandomAvatarColor(studentName),
+                          });
+                        });
+
+                        // Clear inputs
+                        _studentNameController.clear();
+                        _roomController.clear();
+                        _symptomController.clear();
+                        _treatmentController.clear();
+                        _selectedStatus = 'OBSERVASI';
+
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Laporan kesehatan baru berhasil disimpan!'),
+                            backgroundColor: Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                      label: const Text(
+                        'Simpan Laporan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF004D28),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildInputField(String label, IconData icon, String hint) {
+  Widget _buildInputField(String label, IconData icon, String hint, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         const SizedBox(height: 6),
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.grey, size: 20),
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField(String label, IconData icon, String value, List<String> items, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: value,
+          onChanged: onChanged,
+          items: items.map((type) {
+            return DropdownMenuItem<String>(
+              value: type,
+              child: Text(type, style: const TextStyle(fontSize: 14)),
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.grey, size: 20),
             filled: true,
             fillColor: Colors.grey.shade100,
             border: OutlineInputBorder(
@@ -184,8 +384,7 @@ class _HealthScreenState extends State<HealthScreen> {
           .contains(_searchQuery.toLowerCase());
       final matchesFilter = _selectedFilter == 'Semua' ||
           item['status'].toString().toUpperCase() ==
-              _selectedFilter.toUpperCase() ||
-          (_selectedFilter == 'Pemulihan' && item['status'] == 'PULIH');
+              _selectedFilter.toUpperCase();
       return matchesSearch && matchesFilter;
     }).toList();
 
@@ -350,6 +549,63 @@ class _HealthScreenState extends State<HealthScreen> {
     );
   }
 
+  void _showDetailDialog(Map<String, dynamic> item) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.health_and_safety_outlined, color: Color(0xFF004D28)),
+              const SizedBox(width: 8),
+              const Text(
+                'Detail Riwayat Kesehatan',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDetailRow('Nama Santri', item['name']),
+              const SizedBox(height: 12),
+              _buildDetailRow('Kamar', item['room']),
+              const SizedBox(height: 12),
+              _buildDetailRow('Gejala', item['gejala']),
+              const SizedBox(height: 12),
+              _buildDetailRow('Perawatan', item['perawatan']),
+              const SizedBox(height: 12),
+              _buildDetailRow('Waktu Lapor', item['date']),
+              const SizedBox(height: 12),
+              _buildDetailRow('Status Kesehatan', item['status']),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup', style: TextStyle(color: Color(0xFF004D28), fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 2),
+        Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
+      ],
+    );
+  }
+
   Widget _buildHealthCard(Map<String, dynamic> item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -375,7 +631,7 @@ class _HealthScreenState extends State<HealthScreen> {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: item['avatarColor'],
+                  backgroundColor: item['avatarColor'] as Color,
                   child: Text(
                     item['initials'],
                     style: const TextStyle(
@@ -405,13 +661,13 @@ class _HealthScreenState extends State<HealthScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: item['statusBgColor'],
+                    color: _getStatusBgColor(item['status']),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     item['status'],
                     style: TextStyle(
-                      color: item['statusColor'],
+                      color: _getStatusColor(item['status']),
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -477,7 +733,7 @@ class _HealthScreenState extends State<HealthScreen> {
                   ],
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => _showDetailDialog(item),
                   child: Row(
                     children: [
                       Text('Detail',
@@ -491,6 +747,151 @@ class _HealthScreenState extends State<HealthScreen> {
                 ),
               ],
             ),
+
+            // Action buttons depending on status
+            if (item['status'] == 'OBSERVASI') ...[
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'KLINIK';
+                          item['perawatan'] = 'Poli Klinik';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']} dipindahkan ke perawatan Poli Klinik!'),
+                            backgroundColor: const Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF1565C0)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text(
+                        'Ke Klinik',
+                        style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'SEMBUH';
+                          item['perawatan'] = 'Sembuh (Pulih)';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']} dinyatakan Sembuh & Sehat!'),
+                            backgroundColor: const Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF004D28),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text(
+                        'Sembuh',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (item['status'] == 'KLINIK') ...[
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'RUMAH';
+                          item['perawatan'] = 'Rawat di Rumah';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']} dipulangkan untuk Rawat di Rumah!'),
+                            backgroundColor: const Color(0xFFC62828),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFC62828)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text(
+                        'Dirawat di Rumah',
+                        style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          item['status'] = 'SEMBUH';
+                          item['perawatan'] = 'Sembuh (Pulih)';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']} dinyatakan Sembuh & Sehat!'),
+                            backgroundColor: const Color(0xFF004D28),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF004D28),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text(
+                        'Sembuh',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (item['status'] == 'RUMAH') ...[
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      item['status'] = 'SEMBUH';
+                      item['perawatan'] = 'Sembuh (Pulih)';
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${item['name']} dinyatakan Sembuh & Sehat!'),
+                        backgroundColor: const Color(0xFF004D28),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF004D28),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text(
+                    'Dinyatakan Sembuh',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
